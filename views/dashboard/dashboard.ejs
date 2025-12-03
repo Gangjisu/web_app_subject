@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airplan - Dashboard</title>
+    <style>
+        /* 기존 style.css 내용을 여기에 포함하거나, <link>로 불러오세요 */
+        /* 아래는 대시보드 전용 추가 스타일입니다 */
+        
+        /* 공통 스크롤바 숨김 처리 (기존 코드 유지) */
+        div { -ms-overflow-style: none; scrollbar-width: none; }
+        div::-webkit-scrollbar { display: none; }
+
+        /* 레이아웃 복사 (기존 코드) */
+        .container {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            width: 100%;
+            height: 100%; /* 전체 높이 */
+            margin: 0 auto; 
+            background-image: url('./screen.png'); /* 배경 이미지 경로 확인 */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .section {
+            margin-top: 50px;
+            margin-left: 50px;
+            position: fixed;
+            width: 565px;
+            height: 90%; 
+            background-color: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section_title {
+            display: flex;
+            flex-direction: row;
+            font-size: 28pt; /* 폰트 사이즈 약간 조정 */
+            font-weight: lighter;
+            padding: 40px;
+            margin-bottom: -20px;
+        }
+
+        /* --- 대시보드 전용 카드 스타일 --- */
+        .list_container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 40px 40px 40px;
+        }
+
+        .trip_card {
+            background-color: rgba(255, 255, 255, 0.6); /* 기존보다 약간 더 불투명 */
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s, background-color 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .trip_card:hover {
+            transform: translateY(-3px);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .trip_info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .trip_city {
+            font-size: 18pt;
+            font-weight: 500;
+        }
+
+        .trip_date {
+            font-size: 12pt;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        .status_badge {
+            font-size: 10pt;
+            padding: 5px 10px;
+            border-radius: 20px;
+            color: white;
+        }
+
+        .right_panel {
+            width: 100%;
+            min-height: 90vh;
+            margin-top: 50px;
+            margin-left: 665px;
+            margin-right: 50px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .status_active { background-color: #6c5ce7; } /* 보라색 계열 */
+        .status_done { background-color: #00b894; }   /* 초록색 계열 */
+
+        /* --- JSON Import Zone 스타일 --- */
+        .import_section {
+            margin: 0 40px 40px 40px;
+            padding: 20px;
+            border: 2px dashed rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: 0.3s;
+        }
+
+        .import_section:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+            border-color: #fff;
+        }
+
+        .import_text {
+            font-size: 14pt;
+            color: #333;
+            pointer-events: none;
+        }
+
+        /* 숨겨진 파일 인풋 */
+        #jsonFile { display: none; }
+
+        /* 버튼 아이콘 스타일 재사용 */
+        .user_btn {
+            margin-left: auto;
+            margin-right: 40px;
+            width: 100px;
+            height: 100px;
+            padding: 5px;
+            border: none;
+            background-color: rgba(0, 0, 0, 0);
+            border-radius: 100%;
+            cursor: pointer;
+        }
+
+        .user_btn svg {
+            /* button center */
+            padding: 20px;
+        }
+
+
+        .user_btn:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+            transition: 0.3s;
+        }
+
+
+        .action_btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            background: transparent;
+        }
+        .action_btn:hover { background-color: rgba(0,0,0,0.1); }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <section class="section left_panel">
+            <div class="section_title">
+                Active Journeys
+                <div class="action_btn" onclick="location.href='frontend.html'" title="New Plan">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="list_container">
+                <div class="trip_card" onclick="loadSession('session_01')">
+                    <div class="trip_info">
+                        <div>
+                            <div class="trip_city">Tokyo, Japan</div>
+                            <div class="trip_date">Modified: 2 mins ago</div>
+                        </div>
+                        <span class="status_badge status_active">Draft</span>
+                    </div>
+                </div>
+
+                <div class="trip_card" onclick="loadSession('session_02')">
+                    <div class="trip_info">
+                        <div>
+                            <div class="trip_city">Paris, France</div>
+                            <div class="trip_date">Modified: 2024-11-18</div>
+                        </div>
+                        <span class="status_badge status_active">Planning</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section_title" style="font-size: 20pt; padding-bottom: 20px;">Load Session</div>
+            
+            <div class="import_section" onclick="document.getElementById('jsonFile').click()">
+                <div class="import_text">
+                    📂 Import JSON File<br>
+                    <span style="font-size: 10pt; color: #666;">Click or Drag & Drop</span>
+                </div>
+                <input type="file" id="jsonFile" accept=".json" onchange="handleFileUpload(this)">
+            </div>
+        </section>
+
+
+        <!-- panel -->
+        <section class="right_panel">
+            <div style=" display: flex; flex-direction: row; justify-content: space-between; font-size: 50pt; font-weight: lighter; padding: 40px; margin-bottom: -20px;">
+                Travel History
+                <div class="user_btn" id="">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                </div>
+            </div>
+            <hr style="margin: 40px;">
+            <div class="list_container" style="flex: 0.7;">
+                <div class="trip_card">
+                    <div class="trip_info">
+                        <div>
+                            <div class="trip_city">Seoul, Korea</div>
+                            <div class="trip_date">2023. 12. 25 - 12. 30</div>
+                        </div>
+                        <span class="status_badge status_done">Done</span>
+                    </div>
+                </div>
+
+                <div class="trip_card">
+                    <div class="trip_info">
+                        <div>
+                            <div class="trip_city">New York, USA</div>
+                            <div class="trip_date">2023. 09. 10 - 09. 20</div>
+                        </div>
+                        <span class="status_badge status_done">Done</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+
+    <script>
+        // 간단한 동작 예시 스크립트
+        
+        function loadSession(sessionId) {
+            // 세션 ID를 가지고 계획 페이지로 이동하는 로직
+            alert(`Resuming session: ${sessionId}`);
+            // location.href = `frontend.html?session=${sessionId}`;
+        }
+
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const json = JSON.parse(e.target.result);
+                        console.log("Loaded JSON:", json);
+                        alert(`Successfully loaded plan for: ${json.city || 'Unknown City'}`);
+                        // 여기서 파싱된 데이터를 가지고 화면을 갱신하거나 이동
+                    } catch (err) {
+                        alert("Invalid JSON file!");
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+    </script>
+</body>
+</html>

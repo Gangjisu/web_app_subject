@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airplan - AI Trip Planner</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', 'sans-serif'],
+                        display: ['"Outfit"', 'sans-serif'],
+                    },
+                    colors: {
+                        base: {
+                            950: '#050505',
+                            900: '#0a0a0a',
+                        },
+                        accent: {
+                            korea: '#22d3ee',
+                            japan: '#fb7185',
+                            hongkong: '#c084fc',
+                            singapore: '#fbbf24',
+                            vietnam: '#34d399',
+                        }
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 1s ease-out forwards',
+                        'zoom-slow': 'zoomSlow 20s infinite alternate',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        zoomSlow: {
+                            '0%': { transform: 'scale(1)' },
+                            '100%': { transform: 'scale(1.1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 텍스트 줄바꿈 방지 */
+        .city-title {
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        /* 텍스트 그림자: 배경 이미지 위에서도 잘 보이게 */
+        .text-shadow {
+            text-shadow: 0 4px 30px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="bg-base-950 text-white overflow-hidden font-sans antialiased selection:bg-white/20 selection:text-white">
+
+    <!-- Side Navigation -->
+    <nav class="fixed left-8 top-1/2 -translate-y-1/2 z-50 hidden lg:flex flex-col gap-6 items-center mix-blend-difference">
+        <div class="absolute left-[5px] top-0 bottom-0 w-[1px] bg-white/20 -z-10"></div>
+        
+        <!-- Dot Button Template -->
+        <button onclick="scrollToSection(0)" class="group relative flex items-center nav-dot active" data-target="section-korea">
+            <span class="w-2.5 h-2.5 rounded-full bg-white/50 border border-white/80 transition-all duration-500 group-hover:bg-white group-[.active]:bg-accent-korea group-[.active]:border-accent-korea group-[.active]:scale-125 group-[.active]:shadow-[0_0_15px_rgba(34,211,238,0.8)]"></span>
+            <span class="absolute left-8 text-[10px] font-bold tracking-[0.2em] text-white/50 opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-2 group-hover:translate-x-0 group-[.active]:opacity-100 group-[.active]:translate-x-0 group-[.active]:text-accent-korea">KOREA</span>
+        </button>
+        <button onclick="scrollToSection(5)" class="group relative flex items-center nav-dot" data-target="section-japan">
+            <span class="w-2.5 h-2.5 rounded-full bg-white/50 border border-white/80 transition-all duration-500 group-hover:bg-white group-[.active]:bg-accent-japan group-[.active]:border-accent-japan group-[.active]:scale-125 group-[.active]:shadow-[0_0_15px_rgba(251,113,133,0.8)]"></span>
+            <span class="absolute left-8 text-[10px] font-bold tracking-[0.2em] text-white/50 opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-2 group-hover:translate-x-0 group-[.active]:opacity-100 group-[.active]:translate-x-0 group-[.active]:text-accent-japan">JAPAN</span>
+        </button>
+        <button onclick="scrollToSection(11)" class="group relative flex items-center nav-dot" data-target="section-hongkong">
+            <span class="w-2.5 h-2.5 rounded-full bg-white/50 border border-white/80 transition-all duration-500 group-hover:bg-white group-[.active]:bg-accent-hongkong group-[.active]:border-accent-hongkong group-[.active]:scale-125 group-[.active]:shadow-[0_0_15px_rgba(192,132,252,0.8)]"></span>
+            <span class="absolute left-8 text-[10px] font-bold tracking-[0.2em] text-white/50 opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-2 group-hover:translate-x-0 group-[.active]:opacity-100 group-[.active]:translate-x-0 group-[.active]:text-accent-hongkong">HONGKONG</span>
+        </button>
+        <button onclick="scrollToSection(12)" class="group relative flex items-center nav-dot" data-target="section-singapore">
+            <span class="w-2.5 h-2.5 rounded-full bg-white/50 border border-white/80 transition-all duration-500 group-hover:bg-white group-[.active]:bg-accent-singapore group-[.active]:border-accent-singapore group-[.active]:scale-125 group-[.active]:shadow-[0_0_15px_rgba(251,191,36,0.8)]"></span>
+            <span class="absolute left-8 text-[10px] font-bold tracking-[0.2em] text-white/50 opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-2 group-hover:translate-x-0 group-[.active]:opacity-100 group-[.active]:translate-x-0 group-[.active]:text-accent-singapore">SINGAPORE</span>
+        </button>
+        <button onclick="scrollToSection(13)" class="group relative flex items-center nav-dot" data-target="section-vietnam">
+            <span class="w-2.5 h-2.5 rounded-full bg-white/50 border border-white/80 transition-all duration-500 group-hover:bg-white group-[.active]:bg-accent-vietnam group-[.active]:border-accent-vietnam group-[.active]:scale-125 group-[.active]:shadow-[0_0_15px_rgba(52,211,153,0.8)]"></span>
+            <span class="absolute left-8 text-[10px] font-bold tracking-[0.2em] text-white/50 opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-2 group-hover:translate-x-0 group-[.active]:opacity-100 group-[.active]:translate-x-0 group-[.active]:text-accent-vietnam">VIETNAM</span>
+        </button>
+    </nav>
+
+    <!-- Main Scroll Container -->
+    <main id="main-container" class="h-screen w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth no-scrollbar">
+
+        <!-- KOREA - Seoul -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-korea">
+            <!-- Background Image -->
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1702738684542-6e7d539e8329?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-full object-cover animate-zoom-slow" alt="Seoul Background">
+                <!-- Dark Gradient Overlay for Readability -->
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+
+            <!-- Content -->
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-korea shadow-[0_0_10px_#22d3ee]"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-korea">KOREA</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-korea shadow-[0_0_10px_#22d3ee]"></span>
+                </div>
+                
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Seoul
+                </h1>
+                
+                <p class="text-neutral-200 text-sm md:text-lg font-light max-w-lg mb-10 opacity-0 animate-fade-in-up" style="animation-delay: 0.3s;">
+                    A harmonious blend of ancient tradition and cutting-edge digital technology.
+                </p>
+
+                <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- KOREA - Busan -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-korea">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1701595964277-712b453dd66b?q=80&w=2072&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-full object-cover animate-zoom-slow" alt="Busan Background">
+                
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-korea"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-korea">KOREA</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-korea"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Busan
+                </h1>
+                <p class="text-neutral-200 text-sm md:text-lg font-light max-w-lg mb-10 opacity-0 animate-fade-in-up" style="animation-delay: 0.3s;">
+                    Korea's second largest city, famous for its beaches, mountains and temples.
+                </p>
+                <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- KOREA - Gyeongju -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-korea">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1669764372822-3cb8476d4f47?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-full object-cover animate-zoom-slow" alt="Gyeongju Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-korea"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-korea">KOREA</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-korea"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Gyeongju
+                </h1>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- KOREA - Jeju -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-korea">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1679054142703-6e6d2fa5934f?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-full object-cover animate-zoom-slow" alt="Jeju Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-korea"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-korea">KOREA</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-korea"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Jeju
+                </h1>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+         <!-- KOREA - Jeonju -->
+         <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-korea">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1653230675261-fe00bde32c8e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-full object-cover animate-zoom-slow" alt="Jeonju Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-korea"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-korea">KOREA</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-korea"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Jeonju
+                </h1>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- JAPAN - Tokyo -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-japan">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1994&auto=format&fit=crop" class="w-full h-full object-cover animate-zoom-slow" alt="Tokyo Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-japan"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-japan">JAPAN</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-japan"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Tokyo
+                </h1>
+                <p class="text-neutral-200 text-sm md:text-lg font-light max-w-lg mb-10 opacity-0 animate-fade-in-up" style="animation-delay: 0.3s;">
+                    The neon-lit bustling capital, mixing the ultramodern and the traditional.
+                </p>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- JAPAN - Kyoto -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-japan">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover animate-zoom-slow" alt="Kyoto Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-japan"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-japan">JAPAN</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-japan"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Kyoto
+                </h1>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- JAPAN - Osaka -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-japan">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1590253230532-a67f6bc61c9e?q=80&w=2031&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-full object-cover animate-zoom-slow" alt="Osaka Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-japan"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-japan">JAPAN</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-japan"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Osaka
+                </h1>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- JAPAN - Sapporo -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-japan">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1572420780547-8fbb45c82f0a?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-full object-cover animate-zoom-slow" alt="Sapporo Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-japan"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-japan">JAPAN</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-japan"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Sapporo
+                </h1>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- JAPAN - Okinawa -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-japan">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1647336963732-7446b9da7a6f?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-full object-cover animate-zoom-slow" alt="Okinawa Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-japan"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-japan">JAPAN</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-japan"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Okinawa
+                </h1>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- JAPAN - Fukuoka -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-japan">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1618897037073-5edb010d92f5?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-full object-cover animate-zoom-slow" alt="Fukuoka Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-japan"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-japan">JAPAN</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-japan"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Fukuoka
+                </h1>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- HONG KONG -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-hongkong">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1513622790541-eaa84d356909?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-full object-cover animate-zoom-slow" alt="Hong Kong Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-hongkong"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-hongkong">HONG KONG</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-hongkong"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Hong Kong
+                </h1>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- SINGAPORE -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-singapore">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1565967511849-76a60a516170?q=80&w=2071&auto=format&fit=crop" class="w-full h-full object-cover animate-zoom-slow" alt="Singapore Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-singapore"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-singapore">SINGAPORE</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-singapore"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Singapore
+                </h1>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- VIETNAM - Hanoi -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-vietnam">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1712576752855-bf4721d76a86?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-full object-cover animate-zoom-slow" alt="Hanoi Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-vietnam"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-vietnam">VIETNAM</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-vietnam"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Hanoi
+                </h1>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- VIETNAM - Danang -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-vietnam">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1571713343936-b27b7bedddab?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="w-full h-full object-cover animate-zoom-slow" alt="Danang Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-vietnam"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-vietnam">VIETNAM</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-vietnam"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Danang
+                </h1>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- VIETNAM - Hochiminh -->
+        <section class="relative h-screen w-full snap-center overflow-hidden group" data-group="section-vietnam">
+            <div class="absolute inset-0 w-full h-full">
+                <img src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover animate-zoom-slow" alt="Hochiminh Background">
+                <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80 backdrop-blur-[2px]"></div>
+            </div>
+            <div class="relative z-10 h-full flex flex-col items-center justify-center text-center p-6">
+                <div class="flex items-center gap-3 mb-4 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-vietnam"></span>
+                    <h2 class="text-sm font-bold tracking-[0.5em] text-accent-vietnam">VIETNAM</h2>
+                    <span class="w-1.5 h-1.5 rounded-full bg-accent-vietnam"></span>
+                </div>
+                <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
+                    Hochiminh
+                </h1>
+                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                    <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        const sections = document.querySelectorAll('section');
+        const navDots = document.querySelectorAll('.nav-dot');
+
+        const observerOptions = {
+            root: document.querySelector('#main-container'),
+            threshold: 0.51
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const groupName = entry.target.dataset.group;
+                    
+                    navDots.forEach(dot => {
+                        const targetGroup = dot.dataset.target;
+                        if(targetGroup === groupName) {
+                            dot.classList.add('active');
+                        } else {
+                            dot.classList.remove('active');
+                        }
+                    });
+
+                    // Trigger animations
+                    const animatedElements = entry.target.querySelectorAll('.animate-fade-in-up');
+                    animatedElements.forEach(el => {
+                        el.style.animation = 'none';
+                        el.offsetHeight; 
+                        el.style.animation = null; 
+                    });
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => observer.observe(section));
+
+        function scrollToSection(index) {
+            const sections = document.querySelectorAll('section');
+            const targetSection = sections[index];
+            targetSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function adjustFontSizes() {
+            const titles = document.querySelectorAll('.city-title');
+            
+            titles.forEach(title => {
+                const textLength = title.textContent.trim().length;
+                const baseSizeRem = parseFloat(title.dataset.baseSize || 10);
+                let newSizeRem = baseSizeRem;
+
+                if (textLength > 10) {
+                     newSizeRem = baseSizeRem * 0.5;
+                } else if (textLength > 7) {
+                    newSizeRem = baseSizeRem * 0.7;
+                }
+
+                if (window.innerWidth < 768) {
+                    newSizeRem = newSizeRem * 0.5;
+                }
+
+                title.style.fontSize = `${newSizeRem}rem`;
+            });
+        }
+
+        adjustFontSizes();
+        window.addEventListener('resize', adjustFontSizes);
+    </script>
+</body>
+</html>

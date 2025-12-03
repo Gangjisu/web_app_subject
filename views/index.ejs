@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <!-- project common header -->
+    <%- include('include/pHeader.ejs') %>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            overflow: hidden; /* 스크롤 방지 */
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+	
+        .lobster-regular {
+            font-family: "Lobster", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        /* Background Animation */
+        .bg-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            z-index: -2;
+        }
+
+        .bg-slide.active {
+            opacity: 1;
+        }
+
+        .bg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(74, 144, 226, 0.3), rgba(144, 19, 254, 0.2));
+            z-index: -1;
+        }
+
+        /* Transition States */
+        #main-container {
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: top center;
+        }
+
+        /* 3D Globe Styles */
+        #globe-container {
+            width: 100%; /* 크기 조절 */
+            height: 250px; /* 크기 조절 */
+        }
+        #globe-container canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Spinner from ob.ejs */
+        .spinner {
+            border: 8px solid rgba(255, 255, 255, 0.3);
+            border-top: 8px solid #fff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+
+    </style>
+</head>
+<body class="h-screen w-screen relative text-white selection:bg-blue-300 selection:text-blue-900">
+
+    <!-- Background Slideshow -->
+    <div id="slide1" class="bg-slide active" style="background-image: url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074&auto=format&fit=crop');"></div>
+    <div id="slide2" class="bg-slide" style="background-image: url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop');"></div>
+    <div id="slide3" class="bg-slide" style="background-image: url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop');"></div>
+    <div class="bg-overlay"></div>
+
+    <!-- Collapsed Top Navigation Bar (Hidden by default) -->
+    <%- include('include/nav_bar.ejs') %>
+
+    <!-- Main Content Container -->
+    <main id="main-container" class="relative w-full h-full flex items-center justify-center p-6">
+        
+        <!-- Toggle Minimize Button (Top Right of Main View) -->
+        <div class="absolute top-8 right-8 z-20">
+            <button onclick="collapseView()" class="glass-btn p-3 rounded-full group flex items-center gap-2 pr-4 text-sm font-medium">
+                <i data-lucide="minimize-2" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                <span class="hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-300">메뉴 축소</span>
+            </button>
+        </div>
+
+        <!-- Glass Card -->
+        <div class="glass-panel w-full max-w-4xl p-12 rounded-3xl relative overflow-hidden flex flex-col items-center text-center shadow-2xl">
+            <!-- 3D Globe Container -->
+            <div id="globe-container" ></div>
+
+            <!-- Title & Description -->
+            <h1 class="lobster-regular text-5xl md:text-7xl font-bold tracking-tight mb-4 drop-shadow-md">
+                Air Plan
+            </h1>
+            <hr style="border: 2px dashed white; width: 100%; margin-block: 20px;"/>
+            <p class="text-lg md:text-xl text-blue-50 mb-10 max-w-lg leading-relaxed font-light">
+                구름 위를 걷는 듯한 설렘,<br/>
+                당신의 다음 여정을 가장 완벽하게 설계해 드립니다.
+            </p>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col md:flex-row gap-6 w-full md:w-auto">
+                <button class="glass-btn px-8 py-4 rounded-2xl text-lg font-semibold flex items-center justify-center gap-3 group min-w-[200px]">
+                    <i data-lucide="layout-dashboard" class="group-hover:text-blue-200 transition-colors"></i>
+                    <span>DashBoard 보기</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>
+                </button>
+                
+                <button class="glass-btn bg-blue-500/20 hover:bg-blue-500/40 border-blue-300/30 px-8 py-4 rounded-2xl text-lg font-semibold flex items-center justify-center gap-3 group min-w-[200px]">
+                    <i data-lucide="plus-circle" class="group-hover:rotate-90 transition-transform duration-300"></i>
+                    <span>새 계획 짜기</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom Text -->
+        <div class="absolute bottom-8 text-white/50 text-sm font-light tracking-widest uppercase">
+            Designed for Travelers
+        </div>
+    </main>
+
+    <!-- 3D Globe Logic (Module) -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // 이 스크립트는 기존 UI 로직과 분리되어 모듈로 동작합니다.
+        init3DGlobe();
+    </script>
+
+    <!-- UI Control Script -->
+    <script>
+        // 이 스크립트는 아이콘 초기화, 레이아웃 전환, 배경 슬라이드 등 UI를 제어합니다.
+        // Three.js 로직은 위쪽 모듈 스크립트로 분리되었습니다.
+
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // State Management
+        const body = document.body;
+        let isCollapsed = false;
+
+        // Functions for Layout switching
+        function collapseView() {
+            body.classList.add('collapsed-mode');
+            isCollapsed = true;
+        }
+
+        function expandView() {
+            body.classList.remove('collapsed-mode');
+            isCollapsed = false;
+        }
+
+        function resetView() {
+            // "Index 페이지로 돌아가기" logic - similar to expand but conceptually reloading/resetting
+            expandView();
+            // Optional: reset other states if needed
+        }
+
+        // Background Slider Logic
+        const slides = document.querySelectorAll('.bg-slide');
+        let currentSlide = 0;
+
+        function nextSlide() {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }
+
+        // Change background every 5 seconds
+        setInterval(nextSlide, 5000);
+
+    </script>
+
+    <!-- 3D logic to keep things organized -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // 3D 지구본 초기화 함수
+        function init3DGlobe() {
+            const globeContainer = document.getElementById('globe-container');
+            if (!globeContainer) return;
+
+            // Scene
+            const scene = new THREE.Scene();
+
+            // Camera
+            const camera = new THREE.PerspectiveCamera(70, globeContainer.clientWidth / globeContainer.clientHeight, 0.1, 1000);
+            camera.position.set(0, 0, 2.5); // 거리를 줄여서 더 가깝게 시작
+            scene.add(camera);
+
+            // Renderer
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); // alpha: true for transparent background
+            renderer.setSize(globeContainer.clientWidth, globeContainer.clientHeight);
+            globeContainer.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.75);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
+            camera.add(directionalLight);
+            directionalLight.position.set(1, 1, 2);
+
+            const clock = new THREE.Clock();
+            let mixer;
+
+            // GLTF Loader with a simple loading indicator
+            const loader = new GLTFLoader();
+            const spinner = document.createElement('div');
+            spinner.className = 'spinner';
+            globeContainer.appendChild(spinner);
+
+            loader.load('/assets/earth-cartoon.glb', function (gltf) { // 경로를 /assets/ 로 수정
+                spinner.remove(); // 로딩 완료 시 스피너 제거
+                const model = gltf.scene;
+                scene.add(model);
+
+                mixer = new THREE.AnimationMixer(model);
+                gltf.animations.forEach((clip) => {
+                    mixer.clipAction(clip).play();
+                });
+
+            }, undefined, function (error) {
+                spinner.remove();
+                console.error('An error happened while loading the model:', error);
+                globeContainer.innerHTML = '<p>모델 로딩 실패</p>';
+            });
+
+            // Controls
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.enableZoom = false;
+            controls.enablePan = false;
+            controls.autoRotate = true;
+            controls.enableRotate = false;
+            controls.autoRotateSpeed = 0.5; // 회전 속도 조절
+
+            // Animation Loop
+            function animate() {
+                requestAnimationFrame(animate);
+                const delta = clock.getDelta();
+                if (mixer) mixer.update(delta);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Handle Resize (using ResizeObserver for container)
+            const resizeObserver = new ResizeObserver(entries => {
+                const entry = entries[0];
+                const { width, height } = entry.contentRect;
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            });
+            resizeObserver.observe(globeContainer);
+        }
+
+        // Start the 3D globe initialization
+        init3DGlobe();
+    </script>
+</body>
+</html>
