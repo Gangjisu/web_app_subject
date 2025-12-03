@@ -8,7 +8,7 @@ const getHome = asyncHandler(async (req, res) => {
 }) 
 const getPlan = asyncHandler(async (req, res) => {
     // const index = await pageRequest.find();
-    res.render("plan/plan.ejs");
+    res.render("plan/plan.ejs", { googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY });
 }) 
 const getRegion = asyncHandler(async (req, res) => {
     // const index = await pageRequest.find();
