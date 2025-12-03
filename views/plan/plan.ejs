@@ -3,42 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Glass OS - Trip Manager (Fixed)</title>
+<title>Glass OS - Trip Manager (Complete Fixed)</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <style>
-    /* 폰트 및 기본 설정 */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap');
     
     body { 
-        margin: 0; 
-        padding: 0; 
-        overflow: hidden; 
+        margin: 0; padding: 0; overflow: hidden; 
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-        user-select: none; 
-        background-color: #000;
+        user-select: none; background-color: #000;
     }
 
-    /* 스크롤바 커스텀 */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* 1. 배경 (3D 지도 컨테이너) */
-    #map-container {
-        position: fixed;
-        inset: 0;
-        z-index: 0;
-        width: 100%;
-        height: 100%;
-    }
-    
-    gmp-map-3d {
-        width: 100%;
-        height: 100%;
-        display: block;
-    }
+    #map-container { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; }
+    gmp-map-3d { width: 100%; height: 100%; display: block; }
 
-    /* 2. Glass 효과 */
     .glass {
         background: rgba(20, 20, 30, 0.45);
         backdrop-filter: blur(30px);
@@ -47,227 +29,161 @@
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
 
-    /* 3. OS Window 공통 스타일 */
     .os-window {
-        position: absolute;
-        border-radius: 20px;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden; 
-        /* 기본 트랜지션 (드래그 시 JS로 해제됨) */
-        transition: transform 0.2s, opacity 0.2s, width 0.3s, height 0.3s;
-        z-index: 10;
-        /* 초기 크기 설정 */
+        position: absolute; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; 
+        transition: transform 0.2s, opacity 0.2s, width 0.3s, height 0.3s; z-index: 10;
     }
 
-    /* Window 1: Settings (좌측) - 높이 문제 수정 */
-    #window-settings {
-        top: 80px;
-        left: 80px;
-        width: 400px;
-        /* height: auto 대신 명시적 높이 사용으로 잘림 방지 */
-        height: 700px; 
-        max-height: 85vh;
-        /* bottom 속성 제거 (충돌 방지) */
-    }
-
-    /* Window 2: Schedule (우측) */
-    #window-schedule {
-        top: 80px;
-        left: 500px; 
-        width: 440px;
-        height: 700px;
-        max-height: 85vh;
-        opacity: 0;
-        transform: scale(0.95);
-        pointer-events: none;
-        display: none;
-    }
-
-    /* 활성 윈도우 스타일 */
-    .os-window.active-window { 
-        z-index: 50; 
-        border-color: rgba(255,255,255,0.3);
-        box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.6);
-    }
+    /* Settings Window */
+    #window-settings { top: 80px; left: 80px; width: 400px; height: 700px; max-height: 85vh; }
+    /* Schedule Window */
+    #window-schedule { top: 80px; left: 500px; width: 440px; height: 700px; max-height: 85vh; opacity: 0; transform: scale(0.95); pointer-events: none; display: none; }
     
-    .os-window.minimized {
-        opacity: 0 !important;
-        transform: scale(0.5) translateY(500px) !important;
-        pointer-events: none;
-    }
+    .os-window.active-window { z-index: 50; border-color: rgba(255,255,255,0.3); box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.6); }
+    .os-window.minimized { opacity: 0 !important; transform: scale(0.5) translateY(500px) !important; pointer-events: none; }
+    .os-window.maximized { width: 90vw !important; height: 90vh !important; top: 5vh !important; left: 5vw !important; border-radius: 24px !important; transform: none !important; z-index: 100 !important; }
     
-    .os-window.maximized {
-        /* Theater Mode */
-        width: 90vw !important;
-        height: 90vh !important;
-        top: 5vh !important;
-        left: 5vw !important;
-        border-radius: 24px !important;
-        transform: none !important;
-        z-index: 100 !important;
-    }
-
-    /* 드래그 중일 때 클래스 (JS에서 추가) */
-    .os-window.is-dragging {
-        transition: none !important; /* 모든 애니메이션 즉시 정지 */
-        cursor: grabbing;
-    }
+    /* Dragging Optimization */
+    .os-window.is-dragging { transition: none !important; cursor: grabbing; }
     
     .window-header {
-        height: 56px;
-        background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        display: flex;
-        align-items: center;
-        padding: 0 24px;
-        cursor: grab;
-        flex-shrink: 0;
-        user-select: none;
+        height: 56px; background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; align-items: center; padding: 0 24px; cursor: grab; flex-shrink: 0;
     }
-    .window-header:active { cursor: grabbing; }
-
     .traffic-lights { display: flex; gap: 8px; }
-    .traffic-light { 
-        width: 13px; height: 13px; border-radius: 50%; 
-        position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center;
-        transition: transform 0.1s;
-    }
+    .traffic-light { width: 13px; height: 13px; border-radius: 50%; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
     .traffic-light:hover { transform: scale(1.1); }
     .close-btn { background: #ff5f56; border: 1px solid #e0443e; }
     .min-btn { background: #ffbd2e; border: 1px solid #dea123; }
     .max-btn { background: #27c93f; border: 1px solid #1aab29; }
 
-    /* 위젯 스타일 */
     .desktop-widget {
-        position: fixed;
-        top: 60px;
-        right: 60px;
-        width: 320px;
-        background: transparent;
-        z-index: 5;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
+        position: fixed; top: 60px; right: 60px; width: 340px;
+        background: transparent; z-index: 5; display: flex; flex-direction: column; gap: 20px;
         transition: opacity 0.4s ease, transform 0.4s ease;
     }
     .desktop-widget.hidden-widget { opacity: 0; transform: translateX(50px); pointer-events: none; }
+    
     .widget-card {
-        padding: 24px;
+        padding: 0; 
         border-radius: 24px;
-        background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
+        background: linear-gradient(135deg, rgba(30,30,40,0.6) 0%, rgba(30,30,40,0.4) 100%);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(8px);
+        backdrop-filter: blur(20px);
+        overflow: hidden;
+        position: relative;
+        transition: all 0.3s ease;
     }
 
-    /* Dock */
-    .dock-wrapper {
-        position: fixed;
-        bottom: 30px;
-        left: 0; right: 0;
-        display: flex; justify-content: center;
-        z-index: 100;
-    }
+    .dock-wrapper { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; z-index: 100; }
     .dock {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 16px 20px;
-        border-radius: 28px;
-        background: rgba(20, 20, 20, 0.6);
-        backdrop-filter: blur(30px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 28px;
+        background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     }
     .dock-item {
-        width: 56px; height: 56px;
-        border-radius: 18px;
-        background: rgba(255,255,255,0.08);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 24px; color: white;
-        cursor: pointer;
-        position: relative;
-        transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        width: 56px; height: 56px; border-radius: 18px; background: rgba(255,255,255,0.08);
+        display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; cursor: pointer; position: relative; transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
     .dock-item:hover { transform: scale(1.15) translateY(-10px); background: rgba(255,255,255,0.2); }
-    .dock-item.active::after {
-        content: ''; position: absolute; bottom: -8px; width: 5px; height: 5px;
-        background: white; border-radius: 50%; box-shadow: 0 0 10px rgba(255,255,255,0.5);
-    }
+    .dock-item.active::after { content: ''; position: absolute; bottom: -8px; width: 5px; height: 5px; background: white; border-radius: 50%; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
     
     .glass-input {
-        width: 100%;
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 14px;
-        padding: 14px 18px;
-        color: white;
-        font-size: 15px;
-        outline: none;
-        transition: all 0.2s;
+        width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 14px; padding: 14px 18px; color: white; font-size: 15px; outline: none; transition: all 0.2s;
     }
     .glass-input:focus { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
 
-    /* Schedule Specific Styles */
+    /* Unified Dashed Line */
     .dashed-line {
         background-image: linear-gradient(to right, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 0%);
-        background-position: bottom;
-        background-size: 8px 1px;
-        background-repeat: repeat-x;
-        height: 1px;
+        background-position: bottom; background-size: 8px 1px; background-repeat: repeat-x; height: 1px;
     }
     .font-numeric { font-variant-numeric: tabular-nums; }
     .dragging { opacity: 0.4 !important; transform: scale(0.98); }
-    .glass-panel {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
+    .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
     
-    /* View Switching */
-    .view-section {
-        /* 절대 위치로 겹쳐두어 레이아웃 흔들림 방지 가능하나, flex 구조 유지 */
-        transition: opacity 0.3s ease, transform 0.3s ease;
+    .view-section { transition: opacity 0.3s ease, transform 0.3s ease; height: 100%; display: flex; flex-direction: column; }
+    .hidden-view { display: none !important; opacity: 0; transform: translateX(20px); }
 
-        height: 100%;
-        display: flex;
-        flex-direction: column;
+    /* Tab Buttons */
+    .tab-btn {
+        flex: 1; padding: 12px; border-radius: 14px; font-size: 13px; font-weight: 600;
+        transition: all 0.2s ease; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 6px;
     }
-    .hidden-view {
-        display: none !important;
-        opacity: 0;
-        transform: translateX(20px);
+    .tab-btn.active {
+        background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
+    .tab-btn.active::before {
+        content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.1), transparent); pointer-events: none;
+    }
+    .tab-btn.inactive {
+        background: transparent; border: 1px solid transparent; color: rgba(255,255,255,0.4);
+    }
+    .tab-btn.inactive:hover {
+        background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.8);
+    }
+    .tab-btn:active { transform: scale(0.96); }
 </style>
 </head>
 <body class="text-white selection:bg-emerald-500/30">
 
-    <!-- 1. 3D Map Background -->
     <div id="map-container"></div>
 
-    <!-- 2. Desktop Widget -->
+    <!-- Desktop Widget -->
     <div id="desktop-widget" class="desktop-widget">
-        <div class="widget-card">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="text-4xl font-light tracking-tighter">24°</h2>
-                    <p class="text-white/60 text-sm mt-1">Tokyo, Japan</p>
+        <div id="dest-info-widget" class="widget-card group cursor-default">
+            <div class="h-36 relative overflow-hidden">
+                <img id="dest-image" src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#1e1e28] to-transparent"></div>
+                <div class="absolute bottom-4 left-5">
+                    <h2 id="dest-name" class="text-2xl font-bold tracking-tight text-white">Tokyo, Japan</h2>
+                    <p class="text-[10px] text-white/60 uppercase tracking-widest font-medium mt-1">CURRENT DESTINATION</p>
                 </div>
-                <i class="fa-solid fa-cloud-sun text-5xl text-amber-300 drop-shadow-[0_0_15px_rgba(252,211,77,0.6)]"></i>
             </div>
-            <div class="space-y-3">
-                <div class="flex justify-between text-xs text-white/50 font-medium">
-                    <span>HUMIDITY</span>
-                    <span>42%</span>
+            <div class="p-5">
+                <div class="flex justify-between items-center text-xs text-white/50 border-b border-white/5 pb-4 mb-4">
+                    <span class="flex items-center"><i class="fa-solid fa-plane-arrival mr-2"></i>Incheon</span>
+                    <span class="flex items-center"><i class="fa-regular fa-calendar mr-2"></i><span id="widget-date-range">Nov 28 - Nov 30</span></span>
                 </div>
-                <div class="w-full bg-white/10 h-1.5 mt-2 rounded-full overflow-hidden">
-                    <div class="bg-gradient-to-r from-amber-300 to-orange-400 w-2/3 h-full"></div>
+                <div class="flex items-center gap-3">
+                    <span class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-xs text-emerald-400 font-medium tracking-wide">Trip Active</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="preview-widget" class="widget-card hidden-view transform translate-x-10 transition-all duration-300">
+            <div class="relative">
+                <div class="absolute top-3 right-3 z-10 px-2 py-1 bg-black/50 backdrop-blur-md rounded-md text-[10px] font-bold border border-white/10 text-white">
+                    <span id="preview-source-badge">AI RECOMMENDED</span>
+                </div>
+                <div class="h-40 bg-white/5 relative overflow-hidden">
+                    <img id="preview-image" src="" class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#1e1e28] via-transparent to-transparent"></div>
+                </div>
+            </div>
+            <div class="p-5">
+                <h3 id="preview-title" class="text-xl font-bold mb-1 text-white">Loading...</h3>
+                <div class="flex items-center gap-2 mb-3">
+                    <span id="preview-category" class="px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 text-[10px] font-bold uppercase border border-indigo-500/30">Thinking</span>
+                    <span id="preview-duration" class="text-xs text-white/40 font-mono">--</span>
+                </div>
+                <p id="preview-desc" class="text-xs text-white/60 leading-relaxed mb-6 line-clamp-4">Analyzing...</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btn-confirm-add" onclick="confirmAddToPlan()" class="col-span-2 py-3 rounded-xl bg-white text-black font-bold text-sm hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 disabled:opacity-50" disabled>
+                        <i class="fa-solid fa-plus"></i> Add to Schedule
+                    </button>
+                    <button onclick="rejectPreview()" class="py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 text-xs font-medium transition-colors border border-white/10">Dismiss</button>
+                    <button onclick="regeneratePreview()" class="py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 text-xs font-medium transition-colors border border-white/10"><i class="fa-solid fa-rotate-right mr-1"></i> Retry</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 3. Window 1: Settings & Planning -->
+    <!-- Window 1: Settings & Planning -->
     <div id="window-settings" class="os-window glass active-window" onmousedown="bringToFront('window-settings')">
         <div class="window-header">
             <div class="traffic-lights group">
@@ -283,10 +199,7 @@
         </div>
 
         <div class="flex-1 overflow-hidden relative bg-transparent flex flex-col">
-            
-            <!-- VIEW 1: Initial Settings (높이 문제 해결) -->
             <div id="view-settings" class="view-section p-8 overflow-y-auto no-scrollbar gap-8">
-                <!-- Destination -->
                 <div class="flex-shrink-0">
                     <label class="text-xs text-white/40 ml-1 mb-2 block font-semibold tracking-wider">DESTINATION</label>
                     <div class="relative group">
@@ -296,8 +209,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Date -->
                 <div class="flex-shrink-0">
                     <div class="flex items-center justify-between mb-2">
                          <label class="text-xs text-white/40 ml-1 font-semibold tracking-wider">DATE</label>
@@ -314,23 +225,17 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Theme (충분한 높이 확보) -->
                 <div class="flex-1 flex flex-col min-h-[200px]">
                      <label class="text-xs text-white/40 ml-1 mb-2 font-semibold tracking-wider">TRIP THEME</label>
-                     <textarea id="trip-theme" class="w-full h-full glass-input resize-none p-5 leading-relaxed placeholder:text-white/20 text-base" placeholder="Describe your dream trip style...&#10;e.g. I want a healing trip with onsen, local food tour, and historical sites. No rushing."></textarea>
+                     <textarea id="trip-theme" class="w-full h-full glass-input resize-none p-5 leading-relaxed placeholder:text-white/20 text-base" placeholder="e.g. Healing, Food tour..."></textarea>
                 </div>
-
-                <!-- Next Button -->
                 <button id="btn-to-plan" onclick="goToPlanning()" disabled class="w-full py-5 rounded-2xl bg-white/5 text-white/30 font-semibold text-lg shadow-lg transition-all flex items-center justify-center gap-3 group mb-2 cursor-not-allowed border border-white/5 flex-shrink-0">
                     <span>Next Step</span>
                     <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                 </button>
             </div>
 
-            <!-- VIEW 2: Planning -->
-            <div id="view-planning" class="view-section hidden-view p-8 overflow-y-auto no-scrollbar gap-8">
-                <!-- Header -->
+            <div id="view-planning" class="view-section hidden-view p-8 overflow-y-auto no-scrollbar gap-6">
                 <div class="flex items-center gap-4 mb-2 flex-shrink-0">
                     <button onclick="backToSettings()" class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/70 transition">
                         <i class="fa-solid fa-chevron-left"></i>
@@ -340,8 +245,10 @@
                         <p class="text-xs text-white/40">Search and add spots</p>
                     </div>
                 </div>
-
-                <!-- Search -->
+                <div class="flex gap-3 mb-2 p-1 bg-white/5 rounded-2xl border border-white/5">
+                    <button id="mode-smart" onclick="setPlanMode('smart')" class="tab-btn active"><i class="fa-solid fa-wand-magic-sparkles text-lg text-emerald-400"></i><span>AI Smart</span></button>
+                    <button id="mode-custom" onclick="setPlanMode('custom')" class="tab-btn inactive"><i class="fa-solid fa-pen-to-square text-lg text-sky-400"></i><span>Custom</span></button>
+                </div>
                 <div class="flex-shrink-0">
                     <label class="text-xs text-white/40 ml-1 mb-2 block font-semibold tracking-wider">SEARCH PLACE</label>
                     <div class="relative">
@@ -350,31 +257,41 @@
                         <div id="autocomplete_results" class="absolute top-full left-0 right-0 mt-2 bg-[#1e1e28]/95 border border-white/10 rounded-xl overflow-hidden z-50 hidden max-h-[250px] overflow-y-auto shadow-2xl backdrop-blur-xl"></div>
                     </div>
                 </div>
-
-                <!-- Requirements -->
-                <div class="flex-1 flex flex-col min-h-[150px]">
-                     <label class="text-xs text-white/40 ml-1 mb-2 font-semibold tracking-wider">REQUIREMENTS</label>
-                     <textarea id="plan-req" class="w-full h-full glass-input resize-none p-5 leading-relaxed placeholder:text-white/20 text-base" placeholder="Notes for this location..."></textarea>
-                </div>
-
-                <!-- Actions -->
-                <div id="action-buttons" class="flex flex-col gap-4 opacity-50 pointer-events-none transition-opacity duration-300 flex-shrink-0">
-                    <p class="text-[10px] text-center text-white/30 uppercase tracking-widest mb-1 font-bold">ADD TO SCHEDULE</p>
-                    <button onclick="addToPlan('ai')" class="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold text-lg shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 border border-white/10">
+                <div id="panel-smart" class="flex-1 flex flex-col gap-6">
+                    <div class="flex-1 flex flex-col min-h-[150px]">
+                         <label class="text-xs text-white/40 ml-1 mb-2 font-semibold tracking-wider">AI REQUIREMENTS</label>
+                         <textarea id="plan-req" class="w-full h-full glass-input resize-none p-5 leading-relaxed placeholder:text-white/20 text-base" placeholder="Ask AI to plan activity..."></textarea>
+                    </div>
+                    <button id="btn-smart-gen" onclick="triggerPreview('ai')" class="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold text-lg shadow-lg hover:shadow-indigo-500/30 transition-all flex items-center justify-center gap-2 border border-white/10 opacity-50 cursor-not-allowed" disabled>
                         <i class="fa-solid fa-wand-magic-sparkles text-indigo-200"></i>
-                        <span>Generate Smart Plan</span>
+                        <span>Create Smart Plan</span>
                     </button>
-                    <button onclick="addToPlan('custom')" class="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-all flex items-center justify-center gap-3">
-                        <i class="fa-solid fa-plus text-white/50"></i>
-                        <span>Add Custom Spot</span>
+                </div>
+                <div id="panel-custom" class="flex-1 flex flex-col gap-6 hidden">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-white/40 ml-1 mb-2 block font-semibold">CATEGORY</label>
+                            <input type="text" id="custom-category" class="glass-input h-14" placeholder="e.g. Food">
+                        </div>
+                        <div>
+                            <label class="text-xs text-white/40 ml-1 mb-2 block font-semibold">DURATION (H)</label>
+                            <input type="number" id="custom-duration" class="glass-input h-14" value="2" min="0.5" step="0.5">
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-xs text-white/40 ml-1 mb-2 block font-semibold">ACTIVITY NAME</label>
+                        <input type="text" id="custom-name" class="glass-input h-14" placeholder="e.g. Lunch at..." >
+                    </div>
+                    <button id="btn-custom-add" onclick="triggerPreview('custom')" class="mt-auto w-full py-4 rounded-2xl bg-white/10 border border-white/10 text-white font-medium hover:bg-white/20 transition-all flex items-center justify-center gap-2 opacity-50 cursor-not-allowed" disabled>
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Preview Plan</span>
                     </button>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <!-- 4. Window 2: Schedule (Edit Button Removed) -->
+    <!-- Window 2: Schedule -->
     <div id="window-schedule" class="os-window glass" onmousedown="bringToFront('window-schedule')">
         <div class="window-header">
             <div class="traffic-lights group">
@@ -386,8 +303,7 @@
                 <i class="fa-solid fa-list-check text-sky-400"></i>
                 <span>Current Plan</span>
             </div>
-            <!-- [Edit Button Deleted] -->
-            <div class="w-14"></div> 
+            <div class="w-14"></div>
         </div>
 
         <div class="flex-1 overflow-hidden flex flex-col relative bg-transparent p-0">
@@ -405,12 +321,9 @@
         </div>
     </div>
 
-    <!-- 5. Dock -->
+    <!-- Dock -->
     <div class="dock-wrapper">
         <div class="dock">
-            <div class="dock-item">
-                <i class="fa-solid fa-face-smile text-sky-400"></i>
-            </div>
             <div class="dock-item active" id="dock-settings" onclick="windowControl('settings', 'dock')">
                 <i class="fa-solid fa-earth-americas text-emerald-400"></i>
             </div>
@@ -425,14 +338,13 @@
 
     <script>
       (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
-        key: "<%= googleMapsApiKey %>", v: "beta",
+        key: "AIzaSyCbWpgn5jCSmkLZ9E3MkWxcFauPl93JuLA", v: "beta",
       });
     </script>
 
     <script type="module">
-        /* =========================================
-           1. Window Management (Stabilized)
-           ========================================= */
+        const GEMINI_API_KEY = ""; 
+
         const windows = {
             settings: { el: document.getElementById('window-settings'), dock: document.getElementById('dock-settings'), state: 'open' },
             schedule: { el: document.getElementById('window-schedule'), dock: document.getElementById('dock-schedule'), state: 'closed' }
@@ -441,41 +353,22 @@
         window.windowControl = (id, action) => {
             const win = windows[id];
             if (!win) return;
-
             if (action === 'close') {
-                win.el.style.opacity = '0';
-                win.el.style.pointerEvents = 'none';
-                win.el.style.transform = 'scale(0.9)';
-                win.dock.classList.remove('active');
-                win.state = 'closed';
+                win.el.style.opacity = '0'; win.el.style.pointerEvents = 'none'; win.el.style.transform = 'scale(0.9)';
+                win.dock.classList.remove('active'); win.state = 'closed';
                 setTimeout(() => { if(win.state === 'closed') win.el.style.display = 'none'; }, 200);
-            } 
-            else if (action === 'minimize') {
-                win.el.classList.add('minimized');
-                win.state = 'minimized';
-            } 
-            else if (action === 'maximize') {
+            } else if (action === 'minimize') {
+                win.el.classList.add('minimized'); win.state = 'minimized';
+            } else if (action === 'maximize') {
                 win.el.classList.toggle('maximized');
-            }
-            else if (action === 'dock') {
+            } else if (action === 'dock') {
                 if (win.state === 'closed') {
-                    win.el.style.display = 'flex';
-                    void win.el.offsetWidth; 
-                    win.el.style.opacity = '1';
-                    win.el.style.transform = 'scale(1)';
-                    win.el.style.pointerEvents = 'auto';
-                    win.el.classList.remove('minimized');
-                    win.dock.classList.add('active');
-                    win.state = 'open';
-                    bringToFront(`window-${id}`);
+                    win.el.style.display = 'flex'; void win.el.offsetWidth; win.el.style.opacity = '1'; win.el.style.transform = 'scale(1)'; win.el.style.pointerEvents = 'auto'; win.el.classList.remove('minimized'); win.dock.classList.add('active'); win.state = 'open'; bringToFront(`window-${id}`);
                     if(id === 'schedule') { setTimeout(() => { renderSchedule(); updateLinePosition(); }, 100); }
                 } else if (win.state === 'minimized') {
-                    win.el.classList.remove('minimized');
-                    win.state = 'open';
-                    bringToFront(`window-${id}`);
+                    win.el.classList.remove('minimized'); win.state = 'open'; bringToFront(`window-${id}`);
                 } else {
-                    win.el.classList.add('minimized');
-                    win.state = 'minimized';
+                    win.el.classList.add('minimized'); win.state = 'minimized';
                 }
             }
         };
@@ -485,126 +378,97 @@
             document.getElementById(elementId).classList.add('active-window');
         };
 
-        // --- Draggable Logic (Highly Optimized) ---
-        let isDragging = false;
-        let startX, startY, initialLeft, initialTop, dragTarget = null;
-        let rafId = null;
+        window.openScheduleWindow = () => { windowControl('schedule', 'dock'); };
 
+        let isDragging = false, startX, startY, initialLeft, initialTop, dragTarget = null, rafId = null;
         document.querySelectorAll('.window-header').forEach(header => {
             header.addEventListener('mousedown', (e) => {
                 if (e.target.closest('.traffic-lights') || e.target.tagName === 'BUTTON') return;
-                
                 dragTarget = header.parentElement;
                 if (dragTarget.classList.contains('maximized')) return;
-
-                isDragging = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                
-                const rect = dragTarget.getBoundingClientRect();
-                initialLeft = rect.left;
-                initialTop = rect.top;
-                
-                // [중요] 드래그 시작 시 애니메이션 완전 제거 클래스 추가
-                dragTarget.classList.add('is-dragging');
-                bringToFront(dragTarget.id);
+                isDragging = true; startX = e.clientX; startY = e.clientY;
+                const rect = dragTarget.getBoundingClientRect(); initialLeft = rect.left; initialTop = rect.top;
+                dragTarget.classList.add('is-dragging'); bringToFront(dragTarget.id);
             });
         });
-
         document.addEventListener('mousemove', (e) => {
             if (!isDragging || !dragTarget) return;
-            
-            // RAF를 사용하여 프레임 드랍 방지
             if (rafId) cancelAnimationFrame(rafId);
             rafId = requestAnimationFrame(() => {
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                dragTarget.style.left = `${initialLeft + dx}px`;
-                dragTarget.style.top = `${initialTop + dy}px`;
+                const dx = e.clientX - startX; const dy = e.clientY - startY;
+                dragTarget.style.left = `${initialLeft + dx}px`; dragTarget.style.top = `${initialTop + dy}px`;
             });
         });
-
         document.addEventListener('mouseup', () => {
-            if (isDragging && dragTarget) {
-                // [중요] 드래그 종료 시 클래스 제거하여 트랜지션 복구
-                dragTarget.classList.remove('is-dragging');
-            }
-            isDragging = false;
-            dragTarget = null;
-            if (rafId) cancelAnimationFrame(rafId);
+            if (isDragging && dragTarget) dragTarget.classList.remove('is-dragging');
+            isDragging = false; dragTarget = null; if (rafId) cancelAnimationFrame(rafId);
         });
 
-        // --- View Switching Logic ---
-        const viewSettings = document.getElementById('view-settings');
-        const viewPlanning = document.getElementById('view-planning');
-        const btnToPlan = document.getElementById('btn-to-plan');
         const startDate = document.getElementById('start-date');
         const endDate = document.getElementById('end-date');
         const themeInput = document.getElementById('trip-theme');
+        const btnToPlan = document.getElementById('btn-to-plan');
+        const viewSettings = document.getElementById('view-settings');
+        const viewPlanning = document.getElementById('view-planning');
+        const durationBadge = document.getElementById('duration-badge');
 
         function checkSettingsValidity() {
             if (startDate.value && endDate.value && themeInput.value.trim().length > 0) {
-                btnToPlan.disabled = false;
-                btnToPlan.classList.remove('bg-white/5', 'text-white/30', 'cursor-not-allowed', 'border-white/5');
-                btnToPlan.classList.add('bg-gradient-to-r', 'from-emerald-600', 'to-teal-600', 'text-white', 'shadow-emerald-500/20', 'border-transparent');
+                btnToPlan.disabled = false; btnToPlan.classList.remove('bg-white/5', 'text-white/30', 'cursor-not-allowed', 'border-white/5'); btnToPlan.classList.add('bg-gradient-to-r', 'from-emerald-600', 'to-teal-600', 'text-white', 'shadow-emerald-500/20', 'border-transparent');
             } else {
-                btnToPlan.disabled = true;
-                btnToPlan.classList.add('bg-white/5', 'text-white/30', 'cursor-not-allowed', 'border-white/5');
-                btnToPlan.classList.remove('bg-gradient-to-r', 'from-emerald-600', 'to-teal-600', 'text-white', 'shadow-emerald-500/20', 'border-transparent');
+                btnToPlan.disabled = true; btnToPlan.classList.add('bg-white/5', 'text-white/30', 'cursor-not-allowed', 'border-white/5'); btnToPlan.classList.remove('bg-gradient-to-r', 'from-emerald-600', 'to-teal-600', 'text-white', 'shadow-emerald-500/20', 'border-transparent');
             }
         }
-        
-        startDate.addEventListener('change', checkSettingsValidity);
-        endDate.addEventListener('change', checkSettingsValidity);
-        themeInput.addEventListener('input', checkSettingsValidity);
+        function updateDateLogic() {
+            const startVal = startDate.value; if (startVal) endDate.min = startVal;
+            if (startVal && endDate.value) {
+                const diff = new Date(endDate.value) - new Date(startVal);
+                if (diff >= 0) {
+                    const days = Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1;
+                    durationBadge.textContent = `${days-1} Nights ${days} Days`; durationBadge.classList.remove('hidden');
+                    const opts = { month: 'short', day: 'numeric' };
+                    document.getElementById('widget-date-range').innerText = `${new Date(startVal).toLocaleDateString('en-US', opts)} - ${new Date(endDate.value).toLocaleDateString('en-US', opts)}`;
+                } else durationBadge.classList.add('hidden');
+            }
+            checkSettingsValidity();
+        }
+        startDate.addEventListener('change', updateDateLogic); endDate.addEventListener('change', updateDateLogic); themeInput.addEventListener('input', checkSettingsValidity);
 
         window.goToPlanning = () => {
             viewSettings.classList.add('hidden-view');
-            // Wait for fade out
-            setTimeout(() => {
-                viewSettings.style.display = 'none'; // Completely hide
-                viewPlanning.style.display = 'flex'; // Enable flex layout
-                
-                // Trigger reflow
-                void viewPlanning.offsetWidth;
-                
-                viewPlanning.classList.remove('hidden-view'); // Fade in
-            }, 300);
-            
+            setTimeout(() => { viewSettings.style.display = 'none'; viewPlanning.style.display = 'flex'; void viewPlanning.offsetWidth; viewPlanning.classList.remove('hidden-view'); }, 300);
             if(windows.schedule.state === 'closed') windowControl('schedule', 'dock');
         };
-
         window.backToSettings = () => {
             viewPlanning.classList.add('hidden-view');
-            setTimeout(() => {
-                viewPlanning.style.display = 'none';
-                viewSettings.style.display = 'flex';
-                void viewSettings.offsetWidth;
-                viewSettings.classList.remove('hidden-view');
-            }, 300);
+            setTimeout(() => { viewPlanning.style.display = 'none'; viewSettings.style.display = 'flex'; void viewSettings.offsetWidth; viewSettings.classList.remove('hidden-view'); }, 300);
         };
 
-        /* =========================================
-           2. Plan Logic: Search & Add
-           ========================================= */
-        let currentSelectedPlace = null;
-        
+        window.setPlanMode = (mode) => {
+            const smartBtn = document.getElementById('mode-smart'); const customBtn = document.getElementById('mode-custom');
+            const smartPanel = document.getElementById('panel-smart'); const customPanel = document.getElementById('panel-custom');
+            if (mode === 'smart') {
+                smartBtn.className = 'tab-btn active'; customBtn.className = 'tab-btn inactive';
+                smartPanel.classList.remove('hidden'); customPanel.classList.add('hidden');
+            } else {
+                smartBtn.className = 'tab-btn inactive'; customBtn.className = 'tab-btn active';
+                smartPanel.classList.add('hidden'); customPanel.classList.remove('hidden');
+            }
+        };
+
+        let currentSelectedPlace = null, pendingPlanItem = null;
         const searchInput = document.getElementById('place_search');
         const resultsDiv = document.getElementById('autocomplete_results');
-        const actionButtons = document.getElementById('action-buttons');
+        const btnSmartGen = document.getElementById('btn-smart-gen');
+        const btnCustomAdd = document.getElementById('btn-custom-add');
 
         searchInput.addEventListener('input', async (e) => {
-            const val = e.target.value;
-            if (val.length < 2) {
-                resultsDiv.classList.add('hidden');
-                return;
-            }
+            const val = e.target.value; if (val.length < 2) { resultsDiv.classList.add('hidden'); return; }
             const { AutocompleteService } = await google.maps.importLibrary("places");
             const service = new AutocompleteService();
             service.getPlacePredictions({ input: val, componentRestrictions: { country: 'jp' } }, (predictions, status) => {
                 if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
-                    resultsDiv.innerHTML = '';
-                    resultsDiv.classList.remove('hidden');
+                    resultsDiv.innerHTML = ''; resultsDiv.classList.remove('hidden');
                     predictions.forEach(p => {
                         const div = document.createElement('div');
                         div.className = 'p-4 hover:bg-white/10 cursor-pointer border-b border-white/5 text-sm text-white/90 flex items-center gap-3 transition-colors';
@@ -617,46 +481,83 @@
         });
 
         async function selectPlace(place) {
-            searchInput.value = place.description;
-            resultsDiv.classList.add('hidden');
-            currentSelectedPlace = place;
+            searchInput.value = place.description; resultsDiv.classList.add('hidden'); currentSelectedPlace = place;
             const { PlacesService } = await google.maps.importLibrary("places");
             const placesService = new PlacesService(document.createElement('div'));
             placesService.getDetails({ placeId: place.place_id }, (detail, status) => {
                 if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    currentSelectedPlace.details = detail;
-                    if(map) {
-                         map.flyCameraTo({
-                            endCamera: {
-                                center: { lat: detail.geometry.location.lat(), lng: detail.geometry.location.lng(), altitude: 0 },
-                                range: 1000, tilt: 0, heading: 0
-                            }, durationMillis: 2000
-                        });
-                    }
+                    currentSelectedPlace.details = detail; updateDestWidget(detail);
+                    if(map) map.flyCameraTo({ endCamera: { center: { lat: detail.geometry.location.lat(), lng: detail.geometry.location.lng(), altitude: 0 }, range: 1000, tilt: 0, heading: 0 }, durationMillis: 2000 });
                 }
             });
-            actionButtons.classList.remove('opacity-50', 'pointer-events-none');
+            btnSmartGen.disabled = false; btnSmartGen.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnCustomAdd.disabled = false; btnCustomAdd.classList.remove('opacity-50', 'cursor-not-allowed');
         }
 
-        window.addToPlan = (type) => {
+        function updateDestWidget(detail) {
+            document.getElementById('dest-name').innerText = detail.name;
+            const imgEl = document.getElementById('dest-image');
+            if (detail.photos && detail.photos.length > 0) imgEl.src = detail.photos[0].getUrl({ maxWidth: 600 });
+            else imgEl.src = 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?q=80&w=1000&auto=format&fit=crop';
+        }
+
+        window.triggerPreview = async (type) => {
             if (!currentSelectedPlace || !currentSelectedPlace.details) return;
-            const name = currentSelectedPlace.structured_formatting.main_text;
-            const category = type === 'ai' ? 'AI Recommended' : 'Custom Spot';
-            const lat = currentSelectedPlace.details.geometry.location.lat();
-            const lng = currentSelectedPlace.details.geometry.location.lng();
-            const newItem = {
-                id: Date.now().toString(),
-                name: name, duration: 2, category: category, coords: { lat: lat, lng: lng }
-            };
-            scheduleState.activities.push(newItem);
-            renderSchedule();
-            searchInput.value = '';
-            actionButtons.classList.add('opacity-50', 'pointer-events-none');
-            currentSelectedPlace = null;
+            const previewWidget = document.getElementById('preview-widget');
+            const destWidget = document.getElementById('dest-info-widget');
+            destWidget.style.display = 'none'; previewWidget.classList.remove('hidden-view', 'translate-x-10');
+            document.getElementById('preview-title').innerText = "Analyzing..."; document.getElementById('btn-confirm-add').disabled = true;
+
+            let name, category, duration, desc;
+            if (type === 'ai') {
+                if (!GEMINI_API_KEY) {
+                    setTimeout(() => {
+                        name = `Explore ${currentSelectedPlace.details.name}`; category = 'Smart Plan'; duration = 2.5; desc = `(Simulated AI) Based on your request "${document.getElementById('plan-req').value}", we suggest exploring...`;
+                        updatePreviewUI(name, category, duration, desc);
+                    }, 1000);
+                    return;
+                }
+                // ... AI Call ...
+            } else {
+                // [MODIFIED] Custom Logic with Text Input
+                name = document.getElementById('custom-name').value || currentSelectedPlace.details.name;
+                category = document.getElementById('custom-category').value; // Text Value
+                duration = parseFloat(document.getElementById('custom-duration').value) || 2;
+                desc = "User created custom activity plan.";
+                updatePreviewUI(name, category, duration, desc);
+            }
         };
 
+        function updatePreviewUI(name, category, duration, desc) {
+            const lat = currentSelectedPlace.details.geometry.location.lat();
+            const lng = currentSelectedPlace.details.geometry.location.lng();
+            pendingPlanItem = { id: Date.now().toString(), name: name, duration: duration, category: category, coords: { lat: lat, lng: lng } };
+            document.getElementById('preview-title').innerText = name;
+            document.getElementById('preview-category').innerText = category;
+            document.getElementById('preview-duration').innerText = `${duration}h`;
+            document.getElementById('preview-desc').innerText = desc;
+            const prevImg = document.getElementById('preview-image');
+            if (currentSelectedPlace.details.photos) { prevImg.src = currentSelectedPlace.details.photos[0].getUrl({ maxWidth: 600 }); prevImg.classList.remove('opacity-0'); }
+            document.getElementById('btn-confirm-add').disabled = false;
+        }
+
+        window.confirmAddToPlan = () => { if(pendingPlanItem) { scheduleState.activities.push(pendingPlanItem); renderSchedule(); resetPreviewUI(); } };
+        window.rejectPreview = () => { pendingPlanItem = null; resetPreviewUI(); };
+        window.regeneratePreview = () => { triggerPreview('ai'); };
+
+        function resetPreviewUI() {
+            const previewWidget = document.getElementById('preview-widget');
+            const destWidget = document.getElementById('dest-info-widget');
+            previewWidget.classList.add('hidden-view', 'translate-x-10');
+            setTimeout(() => { destWidget.style.display = 'block'; }, 300);
+            searchInput.value = '';
+            document.getElementById('plan-req').value = '';
+            document.getElementById('custom-name').value = '';
+            currentSelectedPlace = null;
+        }
+
         /* =========================================
-           4. Schedule Logic & Render
+           5. Schedule Logic (Stable Timeline)
            ========================================= */
         const Icons = {
             plane: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20"/><path d="m13 2 9 10-9 10"/><path d="M5.5 12h-3.5"/></svg>`,
@@ -678,78 +579,31 @@
         };
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; 
-            const dLat = (lat2 - lat1) * (Math.PI/180);
-            const dLon = (lon2 - lon1) * (Math.PI/180);
+            const R = 6371; const dLat = (lat2 - lat1) * (Math.PI/180); const dLon = (lon2 - lon1) * (Math.PI/180);
             const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * (Math.PI/180)) * Math.cos(lat2 * (Math.PI/180)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-            return R * c * 1.3; 
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R * c * 1.3; 
         }
 
         function createStartNode() {
             return `<div class="flex w-full group relative mb-6 pt-4">
                 <div class="w-14 flex-shrink-0 relative flex justify-center items-center">
-                    <div id="start-dot" class="w-3 h-3 rounded-full bg-emerald-500/20 border-emerald-500/30 border shadow-[0_0_10px_rgba(0,0,0,0.5)] z-10 flex items-center justify-center">
-                        <div class="w-1 h-1 rounded-full bg-emerald-400"></div>
-                    </div>
-                </div>
-                <div class="flex-1 pr-1">
-                    <div class="px-5 py-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm flex items-center justify-between w-full shadow-sm hover:bg-white/10 transition-colors">
-                        <div class="flex items-center gap-4">
-                            <div class="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">${Icons.plane}</div>
-                            <div class="flex flex-col"><span class="text-sm font-bold text-white/90">Incheon</span><span class="text-[10px] text-white/40 uppercase tracking-wide">Departure</span></div>
-                        </div>
-                        <span class="text-xs text-white/30 font-mono">10:00 AM</span>
-                    </div>
-                </div>
-            </div>`;
+                <div id="start-dot" class="w-3 h-3 rounded-full bg-emerald-500/20 border-emerald-500/30 border shadow z-10 flex items-center justify-center">
+                <div class="w-1 h-1 rounded-full bg-emerald-400"></div></div></div><div class="flex-1 pr-1">
+                <div class="px-5 py-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm flex items-center justify-between w-full shadow-sm">
+                <div class="flex items-center gap-4">
+                <div class="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">${Icons.plane}</div><div class="flex flex-col"><span class="text-sm font-bold text-white/90">Incheon</span><span class="text-[10px] text-white/40 uppercase">Departure</span></div></div><span class="text-xs text-white/30 font-mono">10:00 AM</span></div></div></div>`;
         }
         function createEndNode() {
-            return `
-            <br>
-            <div class="flex w-full group relative mb-4 mt-12">
-                <div class="w-14 flex-shrink-0 relative flex justify-center items-center">
-                    <div id="end-dot" class="w-3 h-3 rounded-full bg-rose-500/20 border-rose-500/30 border shadow-[0_0_10px_rgba(0,0,0,0.5)] z-10 flex items-center justify-center">
-                        <div class="w-1 h-1 rounded-full bg-rose-400"></div>
-                    </div>
-                </div>
-                <div class="flex-1 pr-1">
-                    <div class="px-5 py-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm flex items-center justify-between w-full shadow-sm hover:bg-white/10 transition-colors">
-                         <div class="flex items-center gap-4">
-                            <div class="p-2 rounded-xl bg-rose-500/20 text-rose-400">${Icons.check}</div>
-                            <div class="flex flex-col"><span class="text-sm font-bold text-white/90">Incheon</span><span class="text-[10px] text-white/40 uppercase tracking-wide">Arrival</span></div>
-                        </div>
-                        <span class="text-xs text-white/30 font-mono">08:00 PM</span>
-                    </div>
-                </div>
-            </div>`;
+            return `<div class="flex w-full group relative mb-6 mt-32 pb-8"><div class="w-14 flex-shrink-0 relative flex justify-center items-center"><div id="end-dot" class="w-3 h-3 rounded-full bg-rose-500/20 border-rose-500/30 border shadow z-10 flex items-center justify-center"><div class="w-1 h-1 rounded-full bg-rose-400"></div></div></div><div class="flex-1 pr-1"><div class="px-5 py-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm flex items-center justify-between w-full shadow-sm"><div class="flex items-center gap-4"><div class="p-2 rounded-xl bg-rose-500/20 text-rose-400">${Icons.check}</div><div class="flex flex-col"><span class="text-sm font-bold text-white/90">Incheon</span><span class="text-[10px] text-white/40 uppercase">Arrival</span></div></div><span class="text-xs text-white/30 font-mono">08:00 PM</span></div></div></div>`;
         }
         function createActivityItem(item, index) {
-            return `<div class="activity-item flex w-full relative group transition-all duration-300 ease-out mb-2" draggable="true" data-index="${index}">
-                <div class="w-14 flex-shrink-0 relative">
-                    <div class="absolute left-[50%] top-[-14px] bottom-[50%] w-[50%] border-l border-b border-slate-600/50 rounded-bl-xl pointer-events-none"></div>
-                    <div class="absolute right-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-slate-800 border border-white/30 z-10 group-hover:bg-sky-400 group-hover:border-sky-400 transition-colors"></div>
-                </div>
-                <div class="flex-1 pr-1 min-w-0">
-                    <div class="glass-panel relative p-4 pl-5 rounded-2xl flex items-center gap-4 cursor-grab active:cursor-grabbing transform transition-all group-hover:translate-x-1 hover:bg-white/10 hover:shadow-lg">
-                        <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white/90 transition-colors">${Icons.mapPin}</div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-base font-medium text-white/95 truncate pointer-events-none">${item.name}</h3>
-                            <span class="text-[11px] text-white/30 uppercase tracking-wider pointer-events-none">${item.category}</span>
-                        </div>
-                        <div class="pr-3 border-l border-white/5 pl-4 flex flex-col items-center min-w-[3.5rem] pointer-events-none">
-                            <span class="text-lg font-light text-white/80">${item.duration}<span class="text-[10px] ml-0.5 opacity-50">h</span></span>
-                        </div>
-                        <div class="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 text-white transition-opacity">${Icons.grip}</div>
-                    </div>
-                </div>
-            </div>`;
+            return `<div class="activity-item flex w-full relative group transition-all duration-300 ease-out mb-2" draggable="true" data-index="${index}"><div class="w-14 flex-shrink-0 relative"><div class="absolute left-[50%] top-1/2 w-[50%] h-px bg-white/20 pointer-events-none"></div><div class="absolute right-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-slate-800 border border-white/30 z-10 group-hover:bg-sky-400 group-hover:border-sky-400 transition-colors"></div></div><div class="flex-1 pr-1 min-w-0"><div class="glass-panel relative p-4 pl-5 rounded-2xl flex items-center gap-4 cursor-grab active:cursor-grabbing transform transition-all group-hover:translate-x-1 hover:bg-white/10 hover:shadow-lg"><div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white/90 transition-colors">${Icons.mapPin}</div><div class="flex-1 min-w-0"><h3 class="text-base font-medium text-white/95 truncate pointer-events-none">${item.name}</h3><span class="text-[11px] text-white/30 uppercase tracking-wider pointer-events-none">${item.category}</span></div><div class="pr-3 border-l border-white/5 pl-4 flex flex-col items-center min-w-[3.5rem] pointer-events-none"><span class="text-lg font-light text-white/80">${item.duration}<span class="text-[10px] ml-0.5 opacity-50">h</span></span></div><div class="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 text-white transition-opacity">${Icons.grip}</div></div></div></div>`;
         }
 
         function renderSchedule() {
             const listContainer = document.getElementById('schedule-list');
             if(!listContainer) return;
-            let html = `<div id="timeline-guide" class="absolute left-7 w-px bg-slate-600/50 z-0 transition-all duration-300 rounded-full"></div>`;
+            let html = `<div id="timeline-guide" class="absolute left-7 w-px bg-white/20 z-0 transition-all duration-300 rounded-full"></div>`;
             html += createStartNode();
 
             let days = []; let currentDayItems = []; let currentHours = 0; let dayCount = 1;
@@ -766,23 +620,8 @@
             days.forEach(day => {
                 const percent = (day.hours / MAX_HOURS) * 100;
                 const color = percent >= 100 ? 'bg-rose-400' : 'bg-sky-400';
-                html += `<div class="flex w-full h-14 items-center relative mt-10 mb-4">
-                    <div class="w-14 flex-shrink-0 relative flex justify-center items-center">
-                        <div class="w-5 h-5 rounded-full bg-slate-900 border-2 border-sky-400/50 shadow z-10 flex items-center justify-center">
-                            <div class="w-2 h-2 rounded-full bg-sky-400"></div>
-                        </div>
-                    </div>
-                    <div class="flex-1 pr-1 flex items-center justify-between">
-                        <h2 class="text-xl font-bold text-white tracking-wide ml-1 drop-shadow-md">Day ${day.day}</h2>
-                        <div class="flex items-center gap-3 bg-black/20 px-4 py-1.5 rounded-full border border-white/5 backdrop-blur-md">
-                            <div class="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                <div class="h-full transition-all duration-500 ease-out ${color}" style="width: ${Math.min(percent, 100)}%"></div>
-                            </div>
-                            <span class="text-xs text-sky-200/60 font-mono">${day.hours}h</span>
-                        </div>
-                    </div>
-                </div>`;
-
+                html += `<div class="flex w-full h-14 items-center relative mt-10 mb-4"><div class="w-14 flex-shrink-0 relative flex justify-center items-center"></div><div class="flex-1 pr-1 flex items-center justify-between"><h2 class="text-xl font-bold text-white tracking-wide ml-1 drop-shadow-md">Day ${day.day}</h2><div class="flex items-center gap-3 bg-black/20 px-4 py-1.5 rounded-full border border-white/5 backdrop-blur-md"><div class="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="h-full transition-all duration-500 ease-out ${color}" style="width: ${Math.min(percent, 100)}%"></div></div><span class="text-xs text-sky-200/60 font-mono">${day.hours}h</span></div></div></div>`;
+                
                 day.items.forEach((item, idx) => {
                     const realIndex = scheduleState.activities.findIndex(a => a.id === item.id);
                     html += createActivityItem(item, realIndex);
@@ -790,14 +629,7 @@
                         const nextItem = day.items[idx + 1];
                         const dist = calculateDistance(item.coords.lat, item.coords.lng, nextItem.coords.lat, nextItem.coords.lng);
                         const cId = `gap-${globalIndex}`;
-                        html += `<div class="flex w-full items-center justify-end pl-14 pr-1 py-2 opacity-90 h-10 relative">
-                            <div class="flex-1 dashed-line mr-3 opacity-30"></div>
-                            <div id="connector-${cId}" class="connector-badge relative flex items-center justify-center h-7 bg-slate-800/60 border border-white/10 rounded-full shadow-lg backdrop-blur-md overflow-hidden transition-all duration-500 ease-out" style="width: 70px;">
-                                <div class="absolute left-0 top-0 bottom-0 bg-sky-500/10 w-full"></div>
-                                <span class="text-xs text-sky-200 font-mono font-bold tracking-wider font-numeric relative z-10">0m</span>
-                            </div>
-                            <div class="flex-1 dashed-line ml-3 opacity-30"></div>
-                        </div>`;
+                        html += `<div class="flex w-full items-center justify-end pl-14 pr-1 py-2 opacity-90 h-10 relative"><div class="flex-1 dashed-line mr-3 opacity-30"></div><div id="connector-${cId}" class="connector-badge relative flex items-center justify-center h-7 bg-slate-800/60 border border-white/10 rounded-full shadow-lg backdrop-blur-md overflow-hidden transition-all duration-500 ease-out" style="width: 70px;"><div class="absolute left-0 top-0 bottom-0 bg-sky-500/10 w-full"></div><span class="text-xs text-sky-200 font-mono font-bold tracking-wider font-numeric relative z-10">0m</span></div><div class="flex-1 dashed-line ml-3 opacity-30"></div></div>`;
                         connectors.push({ id: cId, val: dist, index: globalIndex });
                         globalIndex++;
                     }
@@ -875,19 +707,29 @@
             const startDot = document.getElementById('start-dot');
             const endDot = document.getElementById('end-dot');
             const guideLine = document.getElementById('timeline-guide');
-            const container = document.getElementById('schedule-container'); 
-            if (startDot && endDot && guideLine && container && container.offsetParent !== null) {
-                const containerRect = container.getBoundingClientRect();
+            const listContainer = document.getElementById('schedule-list'); 
+
+            if (startDot && endDot && guideLine && listContainer) {
+                const listRect = listContainer.getBoundingClientRect();
                 const startRect = startDot.getBoundingClientRect();
                 const endRect = endDot.getBoundingClientRect();
-                const top = (startRect.top + startRect.height/2) - containerRect.top + container.scrollTop;
-                const bottom = (endRect.top + endRect.height/2) - containerRect.top + container.scrollTop;
-                guideLine.style.top = `${top}px`;
-                guideLine.style.height = `${bottom - top}px`;
+                
+                // Calculate offsets relative to the listContainer
+                const startTop = (startRect.top + startRect.height / 2) - listRect.top;
+                const endTop = (endRect.top + endRect.height / 2) - listRect.top;
+                
+                const height = endTop - startTop;
+                
+                if (height > 0) {
+                    guideLine.style.top = `${startTop}px`;
+                    guideLine.style.height = `${height}px`;
+                    guideLine.style.display = 'block';
+                } else {
+                    guideLine.style.display = 'none';
+                }
             }
         }
 
-        // Listeners
         window.addEventListener('resize', updateLinePosition);
         document.getElementById('schedule-container').addEventListener('scroll', updateLinePosition);
 
@@ -905,7 +747,6 @@
         }
         initMap();
         
-        // Widget Toggle
         let isWidgetsVisible = true;
         window.toggleWidgets = () => {
             isWidgetsVisible = !isWidgetsVisible;
@@ -920,10 +761,10 @@
             }
         };
 
-        // Initialize Dates
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('start-date').value = today;
         document.getElementById('end-date').value = today;
+        updateDateLogic();
 
     </script>
 </body>
