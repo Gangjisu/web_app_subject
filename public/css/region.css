@@ -1,0 +1,13 @@
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* 텍스트 줄바꿈 방지 */
+.city-title {
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* 텍스트 그림자: 배경 이미지 위에서도 잘 보이게 */
+.text-shadow {
+    text-shadow: 0 4px 30px rgba(0,0,0,0.5);
+}

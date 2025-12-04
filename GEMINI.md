@@ -36,9 +36,8 @@ web_app_subject/
 │   └── mainController.js   # View rendering logic
 ├── routes/
 │   └── mainRoutes.js       # Route definitions including /api/recommend
-├── views/
-│   └── plan/
-│       └── plan.ejs        # MAIN UI FILE: Contains the Glass OS logic, Map init, and Client-side scripts
+├── views/                  # MAIN UI 
+│  
 └── public/                 # Static assets
 ```
 

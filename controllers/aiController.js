@@ -1,3 +1,4 @@
+// API 키 로드
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const axios = require('axios');
 const asyncHandler = require('express-async-handler');
@@ -19,7 +20,7 @@ const getRecommendation = asyncHandler(async (req, res) => {
 
     console.log(`[AI Request] City: ${city}, Theme: ${theme}`);
 
-    // 2. Gemini 프롬프트 (기존 techdemo.js 내용 유지)
+    // 2. Gemini 프롬프트
     const prompt = `
         너는 전문 여행 가이드야. 다음 정보를 바탕으로 '단 하나의' 최고의 여행 장소를 추천해줘.
         - 여행 도시: ${city}
@@ -29,15 +30,18 @@ const getRecommendation = asyncHandler(async (req, res) => {
         [지시사항]
         1. 위 조건에 가장 잘 맞는 구체적인 장소(식당, 관광지, 카페 등) 1곳을 선정해.
         2. Google Maps API에서 검색이 잘 되도록 '공식 명칭'과 '지역명'을 포함한 검색어(searchQuery)를 만들어줘.
-        3. 응답은 반드시 아래 JSON 스키마를 따라야 해.
+        3. 'reason'은 추천하는 구체적인 이유를 2~3문장으로 작성해줘.
+        4. 'keywords'는 이 장소를 잘 나타내는 형용사나 명사 3가지를 배열로 만들어줘.
+        5. 응답은 반드시 아래 JSON 스키마를 따라야 해.
 
         [JSON 출력 형식]
         {
             "placeName": "장소의 정확한 이름",
             "searchQuery": "Google Maps 검색어 (예: 도쿄 스카이트리, 도쿄 시부야구, 양화대교, 서울 강남구)",
-            "reason": "추천 이유",
+            "reason": "추천 이유 (상세하게)",
             "activity": "추천 활동",
-            "estimatedTime": "예상 소요 시간 (숫자만, 예: 2, 3, 2.5, 4.8)"
+            "estimatedTime": "예상 소요 시간 (숫자만, 예: 2, 3, 2.5, 4.8)",
+            "keywords": ["키워드1", "키워드2", "키워드3"]
         }
     `;
 
@@ -45,7 +49,18 @@ const getRecommendation = asyncHandler(async (req, res) => {
         // 3. AI 응답 생성
         const result = await model.generateContent(prompt);
         const aiResponse = result.response;
-        let aiData = JSON.parse(aiResponse.text());
+        let text = aiResponse.text();
+
+        // Markdown 코드 블록 제거 (```json ... ```)
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        let aiData;
+        try {
+            aiData = JSON.parse(text);
+        } catch (e) {
+            console.error("JSON Parse Error:", text);
+            return res.status(500).json({ success: false, error: "AI 응답 형식이 올바르지 않습니다." });
+        }
 
         // 4. Google Places API로 상세 정보 조회
         const mapsUrl = 'https://places.googleapis.com/v1/places:searchText';
@@ -70,9 +85,11 @@ const getRecommendation = asyncHandler(async (req, res) => {
                 name: placeDetail?.displayName?.text || aiData.placeName,
                 address: placeDetail?.formattedAddress || "주소 정보 없음",
                 reason: aiData.reason,
-                location: placeDetail?.location || null, // { lat, lng }
+                location: placeDetail?.location ? { lat: placeDetail.location.latitude, lng: placeDetail.location.longitude } : null,
                 rating: placeDetail?.rating || 0,
-                category: "AI Recommended" // 프론트 식별용
+                photos: placeDetail?.photos || [],
+                category: "AI Recommended",
+                keywords: aiData.keywords || []
             }
         };
 
