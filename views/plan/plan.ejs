@@ -5,15 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Glass OS - Trip Manager (Complete Fixed)</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="/css/plan.css">
 </head>
 <body class="text-white selection:bg-emerald-500/30">
+    <!-- Global Navigation -->
+    <%- include('../include/nav_bar.ejs') %>
 
     <div id="map-container"></div>
 
     <!-- Desktop Widget -->
-    <div id="desktop-widget" class="desktop-widget">
+    <div id="desktop-widget" class="desktop-widget" style="top: 100px;">
         <div id="dest-info-widget" class="widget-card group cursor-default">
             <div class="h-36 relative overflow-hidden">
                 <img id="dest-image" src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1000&auto=format&fit=crop" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
@@ -244,5 +247,8 @@
         const GOOGLE_MAPS_API_KEY = "<%= googleMapsApiKey %>";
     </script>
     <script type="module" src="/javascripts/plan/app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
 </html>

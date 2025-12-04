@@ -135,6 +135,25 @@ searchInput.addEventListener('input', async (e) => {
     });
 });
 
+// Initialize map globally or in a dedicated init function
+// Initialize map globally
+// Initialize map globally
+let map;
+
+async function initMap() {
+    await google.maps.importLibrary("maps3d");
+    map = document.createElement('gmp-map-3d');
+    map.setAttribute('center', '37.4563,126.7052'); // Incheon
+    map.setAttribute('tilt', '0');
+    map.setAttribute('range', '2000');
+    map.setAttribute('heading', '0');
+    map.setAttribute('mode', 'hybrid');
+    document.getElementById('map-container').append(map);
+}
+
+initMap();
+
+
 async function selectPlace(place) {
     searchInput.value = place.description; resultsDiv.classList.add('hidden'); currentSelectedPlace = place;
     const { PlacesService } = await google.maps.importLibrary("places");
@@ -335,12 +354,7 @@ const Icons = {
 
 const MAX_HOURS = 10;
 let scheduleState = {
-    activities: [
-        { id: '1', name: 'National Museum', duration: 3, category: 'art', coords: { lat: 35.7189, lng: 139.7757 } },
-        { id: '2', name: 'Central Park', duration: 2, category: 'nature', coords: { lat: 35.7140, lng: 139.7741 } },
-        { id: '3', name: 'City Temple', duration: 2, category: 'culture', coords: { lat: 35.7147, lng: 139.7967 } },
-        { id: '4', name: 'Skytree View', duration: 3, category: 'view', coords: { lat: 35.7100, lng: 139.8107 } },
-    ],
+    activities: [],
     draggedItemIndex: null,
     gapDistances: {}
 };
@@ -501,18 +515,7 @@ window.addEventListener('resize', updateLinePosition);
 document.getElementById('schedule-container').addEventListener('scroll', updateLinePosition);
 
 // Map Init
-let map;
-async function initMap() {
-    await google.maps.importLibrary("maps3d");
-    map = document.createElement('gmp-map-3d');
-    map.setAttribute('center', '35.6895,139.6917'); 
-    map.setAttribute('tilt', '0');
-    map.setAttribute('range', '2000');
-    map.setAttribute('heading', '30');
-    map.setAttribute('mode', 'hybrid');
-    document.getElementById('map-container').append(map);
-}
-initMap();
+
 
 let isWidgetsVisible = true;
 window.toggleWidgets = () => {
@@ -532,3 +535,57 @@ const today = new Date().toISOString().split('T')[0];
 document.getElementById('start-date').value = today;
 document.getElementById('end-date').value = today;
 updateDateLogic();
+
+// [NEW] Handle URL Query Params from Region Page
+document.addEventListener('DOMContentLoaded', async () => {
+    const params = new URLSearchParams(window.location.search);
+    const city = params.get('city');
+    const country = params.get('country');
+
+    if (city && country) {
+        const fullName = `${city}, ${country}`;
+        
+        // Update UI Text
+        document.getElementById('dest-name').innerText = fullName;
+        document.querySelector('.glass-input span').innerHTML = `<i class="fa-solid fa-location-dot mr-3 text-rose-400"></i>${fullName}`;
+        document.getElementById('schedule-title').innerText = `${city} Trip`;
+        
+        // Update Search Input (for context)
+        const searchInput = document.getElementById('place_search');
+        if(searchInput) searchInput.value = fullName;
+
+        // Fetch Place Details to Center Map & Get Photo
+        const { AutocompleteService, PlacesService } = await google.maps.importLibrary("places");
+        const service = new AutocompleteService();
+        
+        service.getPlacePredictions({ input: fullName }, (predictions, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && predictions && predictions.length > 0) {
+                const placeId = predictions[0].place_id;
+                const pService = new PlacesService(document.createElement('div'));
+                
+                pService.getDetails({ placeId: placeId }, (detail, status) => {
+                    if (status === google.maps.places.PlacesServiceStatus.OK) {
+                        currentSelectedPlace = { description: predictions[0].description, place_id: placeId, details: detail };
+                        updateDestWidget(detail);
+                        
+                        // Wait for map to be ready then fly
+                        const checkMap = setInterval(() => {
+                            if (map) {
+                                clearInterval(checkMap);
+                                map.flyCameraTo({ 
+                                    endCamera: { 
+                                        center: { lat: detail.geometry.location.lat(), lng: detail.geometry.location.lng(), altitude: 1000 }, 
+                                        range: 2000, 
+                                        tilt: 0, 
+                                        heading: 0 
+                                    }, 
+                                    durationMillis: 2000 
+                                });
+                            }
+                        }, 100);
+                    }
+                });
+            }
+        });
+    }
+});

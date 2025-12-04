@@ -10,7 +10,7 @@
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 
@@ -55,9 +55,10 @@
         }
     </script>
     <link rel="stylesheet" href="/css/region.css">
-
 </head>
 <body class="bg-base-950 text-white overflow-hidden font-sans antialiased selection:bg-white/20 selection:text-white">
+    <!-- Global Navigation -->
+    <%- include('../include/nav_bar.ejs') %>
 
     <!-- Side Navigation -->
     <nav class="fixed left-8 top-1/2 -translate-y-1/2 z-50 hidden lg:flex flex-col gap-6 items-center mix-blend-difference">
@@ -114,7 +115,7 @@
                     A harmonious blend of ancient tradition and cutting-edge digital technology.
                 </p>
 
-                <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                <button onclick="window.location.href='/plan?city=Seoul&country=Korea'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -139,7 +140,7 @@
                 <p class="text-neutral-200 text-sm md:text-lg font-light max-w-lg mb-10 opacity-0 animate-fade-in-up" style="animation-delay: 0.3s;">
                     Korea's second largest city, famous for its beaches, mountains and temples.
                 </p>
-                <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                <button onclick="window.location.href='/plan?city=Busan&country=Korea'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -160,7 +161,7 @@
                 <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
                     Gyeongju
                 </h1>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=Gyeongju&country=Korea'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -181,7 +182,7 @@
                 <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
                     Jeju
                 </h1>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=Jeju&country=Korea'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -202,7 +203,7 @@
                 <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
                     Jeonju
                 </h1>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=Jeonju&country=Korea'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -227,7 +228,7 @@
                 <p class="text-neutral-200 text-sm md:text-lg font-light max-w-lg mb-10 opacity-0 animate-fade-in-up" style="animation-delay: 0.3s;">
                     The neon-lit bustling capital, mixing the ultramodern and the traditional.
                 </p>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=Tokyo&country=Japan'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -248,7 +249,7 @@
                 <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
                     Kyoto
                 </h1>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=Kyoto&country=Japan'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -269,7 +270,7 @@
                 <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
                     Osaka
                 </h1>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=Osaka&country=Japan'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -290,7 +291,7 @@
                 <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
                     Sapporo
                 </h1>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=Sapporo&country=Japan'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -311,7 +312,7 @@
                 <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
                     Okinawa
                 </h1>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=Okinawa&country=Japan'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -332,7 +333,7 @@
                 <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
                     Fukuoka
                 </h1>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=Fukuoka&country=Japan'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -353,7 +354,7 @@
                 <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
                     Hong Kong
                 </h1>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=HongKong&country=HongKong'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -374,7 +375,7 @@
                 <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
                     Singapore
                 </h1>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=Singapore&country=Singapore'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -395,7 +396,7 @@
                 <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
                     Hanoi
                 </h1>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=Hanoi&country=Vietnam'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -416,7 +417,7 @@
                 <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
                     Danang
                 </h1>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=Danang&country=Vietnam'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
@@ -437,7 +438,7 @@
                 <h1 class="city-title font-black font-display text-white mb-6 text-shadow opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;" data-base-size="10">
                     Hochiminh
                 </h1>
-                 <button class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
+                 <button onclick="window.location.href='/plan?city=Hochiminh&country=Vietnam'" class="px-8 py-3 rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-all duration-300 opacity-0 animate-fade-in-up" style="animation-delay: 0.4s;">
                     <span class="text-xs font-bold tracking-widest">EXPLORE CITY</span>
                 </button>
             </div>
