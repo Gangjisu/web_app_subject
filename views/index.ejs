@@ -23,6 +23,7 @@
         }
     </script>
     <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/slideshow.css">
 </head>
 <body class="h-screen w-screen relative text-white selection:bg-blue-300 selection:text-blue-900 overflow-hidden">
 
@@ -32,7 +33,7 @@
     <div id="slide3" class="bg-slide" style="background-image: url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop');"></div>
     <div class="bg-overlay"></div>
 
-    <!-- Collapsed Top Navigation Bar (Hidden by default) -->
+    <!-- Collapsed Top Navigation Bar -->
     <%- include('include/nav_bar.ejs') %>
 
     <!-- Main Content Container -->
@@ -75,6 +76,7 @@
 
     <!-- UI Control Script -->
     <script src="/javascripts/index/ui.js"></script>
+    <script src="/javascripts/slideshow.js"></script>
 
 </body>
 </html>
