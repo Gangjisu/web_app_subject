@@ -13,21 +13,22 @@ const observer = new IntersectionObserver((entries) => {
         if (entry.isIntersecting) {
             const groupName = entry.target.dataset.group;
             
-            navDots.forEach(dot => {
-                const targetGroup = dot.dataset.target;
-                if(targetGroup === groupName) {
-                    dot.classList.add('active');
-                } else {
-                    dot.classList.remove('active');
-                }
+            // Optimize Nav Dot Update
+            requestAnimationFrame(() => {
+                navDots.forEach(dot => {
+                    if(dot.dataset.target === groupName) dot.classList.add('active');
+                    else dot.classList.remove('active');
+                });
             });
 
-            // Trigger animations
-            const animatedElements = entry.target.querySelectorAll('.animate-fade-in-up');
-            animatedElements.forEach(el => {
-                el.style.animation = 'none';
-                el.offsetHeight; 
-                el.style.animation = null; 
+            // Trigger animations efficiently
+            const animatedElements = entry.target.querySelectorAll('.reveal-on-scroll');
+            animatedElements.forEach((el, index) => {
+                // Add delay based on index if needed, or rely on inline styles
+                // We just add the class, CSS handles the rest.
+                if (!el.classList.contains('animate-fade-in-up')) {
+                    el.classList.add('animate-fade-in-up');
+                }
             });
         }
     });
